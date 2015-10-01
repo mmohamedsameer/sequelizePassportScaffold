@@ -4,6 +4,7 @@ var router  = express.Router();
 var passport = require('passport');
 
 var User = models.User;
+var UserRole = models.UserRole;
 //Get all users in the system
 //Specifically exclude all passwords for this
 router.get('/', function(req, res) {
@@ -69,6 +70,55 @@ router.delete('/:id', function(req, res){
   })
 });
 
+router.get('/:id/roles', function(req,res,next){
+  User.findById(req.params.id, {include:[UserRole]})
+  .then(function(result){
+    res.status(200).json(result);
+  });
+});
+
+router.post('/:id/roles', function(req, res, next){
+  if(!req.body.id){
+    return res.status(400).send({message:'Must post a Role to assign to this User'});
+  }
+  User.findById(req.params.id, {include:[UserRole]})
+    .then(function(user){
+      for(var x = 0; x < user.UserRoles.length; x++){
+        if(user.UserRoles[x].RoleId === req.body.id){
+          return res.status(400).send({message:'User already has this role assigned to them'});
+        }
+      }
+      UserRole.create({UserId:user.id, RoleId:req.body.id})
+      .then(function(role){
+        user.UserRoles.push(role);
+        res.status(200).send(user);
+      });
+    })
+    .catch(function(err){
+      console.log(err);
+      res.status(400).send(err);
+    });
+});
+
+router.delete('/:id/roles/:roleId', function(req, res, next){
+  if(!req.params.id || !req.params.roleId){
+    return res.status(400).send({message:'Must Provide ID\'s for user and role'});
+  }
+  UserRole.find({where:{UserId:req.params.id, RoleId:req.params.roleId}})
+    .then(function(role){
+      role.destroy()
+      .then(function(){
+        User.findById(req.params.id, {include:[UserRole]})
+          .then(function(user){
+            res.status(200).send(user);
+          });
+      });
+    })
+    .catch(function(err){
+      console.log(err);
+      res.status(400).send(err);
+    });
+});
 //Create Users without logging them in. Useful for administrative purposes
 //TODO: Add in permission restrictions
 router.post('/create', function(req, res){

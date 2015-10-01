@@ -13,6 +13,14 @@ module.exports = function(sequelize, DataTypes) {
     lastName: DataTypes.STRING,
   }, {
     classMethods: {
+      associate: function(models){
+        User.hasMany(models.UserRole, {
+          onDelete:"CASCADE",
+          foreignKey:{
+            allowNull:false
+          }
+        });
+      },
       hashPassword: function(password){
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
       },

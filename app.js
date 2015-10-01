@@ -9,7 +9,7 @@ var session = require('express-session');
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
-
+var roles = require('./routes/roles');
 var app = express();
 
 //configure passport
@@ -37,6 +37,7 @@ app.use(passport.session()); //initialize passport sessions
 
 app.use('/api/', routes);
 app.use('/api/users', users);
+app.use('/api/roles', roles);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
