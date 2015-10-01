@@ -3,19 +3,18 @@ var express = require('express');
 var router  = express.Router();
 var passport = require('passport');
 
+var User = models.User;
 //Get all users in the system
 //Specifically exclude all passwords for this
 router.get('/', function(req, res) {
-  models.User.findAll({attributes:['id','email','firstName','lastName', 'createdAt', 'updatedAt']}).then(function(users) {
+  User.findAll({attributes:['id','email','firstName','lastName', 'createdAt', 'updatedAt']}).then(function(users) {
     res.json(users);
   });
 });
 
 //Get currently logged in user
 router.get('/me', function(req, res, next){
-  console.log(req.user);
   if(req.user){
-    console.log(req.user);
     var user = req.user;
     user.password = null;
     res.status(200).send(user);
@@ -24,10 +23,32 @@ router.get('/me', function(req, res, next){
     res.status(401).send({'message':'Not authenticated'});
   }
 });
+
+router.put('/me', function(req, res, next){
+  User.update(
+    {
+      email:req.body.email,
+      firstName:req.body.firstName,
+      lastName: req.body.lastName
+    },
+    {
+      where:{
+        id:req.body.id
+      }
+    }
+  ).then(function(affectedRows){
+    console.log('Updated: '+affectedRows);
+    return res.status(200).send({message:'Updated : '+affectedRows+' records'});
+  })
+  .catch(function(err){
+    console.log('ERROR: '+err);
+    res.status(500).send({message:'Error updating records'});
+  });
+});
 //Get a user by their ID
 router.get('/:id', function(req, res){
   var id = req.param('id');
-  models.User.findById(id).then(function(user){
+  User.findById(id).then(function(user){
     user.password = null;
     res.json(user);
   });
@@ -35,7 +56,7 @@ router.get('/:id', function(req, res){
 //Delete a user by their ID.
 //TODO: Add in permission Restrictions
 router.delete('/:id', function(req, res){
-  models.User.find({id:id}).then(function(user){
+  User.find({id:id}).then(function(user){
     if(!user){
       res.status(404).send({message:'User Not Found'});
       return;
@@ -51,12 +72,12 @@ router.delete('/:id', function(req, res){
 //Create Users without logging them in. Useful for administrative purposes
 //TODO: Add in permission restrictions
 router.post('/create', function(req, res){
-  models.User.create({
+  User.create({
       username:req.body.username,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
-      password: models.User.hashPassword(req.body.password)
+      password: User.hashPassword(req.body.password)
     })
     .then(function(){
       models.User
@@ -91,10 +112,19 @@ router.post('/register', function(req, res, next){
           return next(err);
         }
         var createdUser = req.user;
-        createdUser.password = '';
-        return res.status(201).send(createdUser);
+        var key = "password";
+        createdUser.password = undefined;
+        delete createdUser[key];
+        console.log(createdUser.password);
+        return res.status(201).json(createdUser);
       });
     }
   })(req, res, next);
 });
+
+//Logout a user
+router.post('/logout', function(req, res, next){
+  req.logOut();
+  res.status(200).send({message:'Successfully Logged out User'});
+})
 module.exports = router;

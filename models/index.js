@@ -7,7 +7,6 @@ var env       = process.env.NODE_ENV || "development";
 var config    = require(__dirname + '/../config/config.json')[env];
 var sequelize = new Sequelize(config.database, config.username, config.password, config);
 var db        = {};
-sequelize.sync({force:true});
 fs
   .readdirSync(__dirname)
   .filter(function(file) {
