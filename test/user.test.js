@@ -16,10 +16,14 @@ describe('API', function(){
     })
     .then(function(){
       done();
+    })
+    .catch(function(err){
+      console.log(err);
+      done();
     });
   });
 
-  var url = request.agent('http://localhost:3000');
+  var url = request.agent('http://127.0.0.1:3000');
 
   var user = {
     email:'test@user.com',
@@ -49,7 +53,7 @@ describe('API', function(){
             res.body.firstName.should.equal(user.firstName);
             res.body.lastName.should.equal(user.lastName);
             res.body.should.not.include.keys('password');
-            user = res.body;
+            user.id = res.body.id;
             done();
           })
     });
@@ -108,6 +112,18 @@ describe('API', function(){
           done();
         });
     });
+    it('should be able to log the user back in. Returns 200', function(done){
+      url
+        .post('/api/users/login')
+        .send(user)
+        .end(function(err, res){
+          res.status.should.equal(200);
+          res.body.email.should.equal(user.email);
+          res.body.firstName.should.equal(user.firstName);
+          res.body.lastName.should.equal(user.lastName);
+          done();
+        })
+    })
   });
   describe('UserRole & Role', function(){
     var role = {

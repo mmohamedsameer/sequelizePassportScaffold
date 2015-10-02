@@ -23,21 +23,26 @@ module.exports = function(passport){
       passReqToCallback : true
     },
     function(req, email, password, done) {
+      console.log('finding user');
       models.User.findOne({where:{email:email}})
         .then(function(user){
           if (!user){
             console.log('User does not exist');
             return done(null, false);
           }
-          if (!models.User.validPassword(password)){
-            console.log('invalid password');
-            return done(null, false);
-          }
-          else {
-            return done(null, user);
-          }
+          console.log(user);
+          models.User.validPassword(password, user.password, function(res){
+            console.log(res);
+            if(res){
+              return done(null, user);
+            }
+            else {
+              return done(null, false);
+            }
+          });
         })
         .catch(function(err){
+          console.log('ERROR: '+err);
           return done(null, false);
         });
       }

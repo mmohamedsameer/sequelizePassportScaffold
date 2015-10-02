@@ -24,9 +24,12 @@ module.exports = function(sequelize, DataTypes) {
       hashPassword: function(password){
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
       },
-      validPassword: function(password, done){
-        return bcrypt.compare(password, this.password, function(err, res){
-          return done(err, res);
+      validPassword: function(password, hashPassword, done){
+        console.log(password);
+        console.log(hashPassword);
+        return bcrypt.compare(password, hashPassword, function(err, res){
+          console.log('HASH COMPARE: '+res);
+          done(res);
         });
       }
     }

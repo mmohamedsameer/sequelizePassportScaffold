@@ -176,5 +176,35 @@ router.post('/register', function(req, res, next){
 router.post('/logout', function(req, res, next){
   req.logOut();
   res.status(200).send({message:'Successfully Logged out User'});
-})
+});
+
+router.post('/login', function(req, res, next){
+		passport.authenticate('local-login', function(err, user, info){
+    console.log('Authenticating');
+    if(err){
+      console.log(err);
+      return res.status(500).send({message:"Error logging in user"});
+    }
+    if(!user){
+      return res.status(403).send({message:"Invalid Username/password"});
+    }
+    console.log('Getting full user');
+    User.findById(user.id, {include:[UserRole]})
+      .then(function(usr){
+        req.logIn(usr, function(err){
+          if(err){
+            return res.status(500).send({message:'Error Getting User Information'});
+          }
+          usr.password = undefined;
+          delete usr.password;
+          res.cookie('user', usr, {httpOnly:false});
+          console.log('logged in user');
+          return res.status(200).send(usr);
+        });
+      })
+      .catch(function(err){
+        return res.status(400).send({message:'Error logging in User'});
+      });
+  })(req, res, next);
+});
 module.exports = router;
