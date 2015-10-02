@@ -88,11 +88,14 @@ router.post('/:id/roles', function(req, res, next){
           return res.status(400).send({message:'User already has this role assigned to them'});
         }
       }
-      UserRole.create({UserId:user.id, RoleId:req.body.id})
-      .then(function(role){
-        user.UserRoles.push(role);
-        res.status(200).send(user);
-      });
+      models.Role.findById(req.body.id)
+        .then(function(role){
+          UserRole.create({UserId:user.id, RoleId:req.body.id, name: role.name})
+          .then(function(role){
+            user.UserRoles.push(role);
+            res.status(200).send(user);
+          });
+        });
     })
     .catch(function(err){
       console.log(err);
@@ -191,6 +194,7 @@ router.post('/login', function(req, res, next){
     console.log('Getting full user');
     User.findById(user.id, {include:[UserRole]})
       .then(function(usr){
+        console.log('LOGIN: '+JSON.stringify(usr));
         req.logIn(usr, function(err){
           if(err){
             return res.status(500).send({message:'Error Getting User Information'});

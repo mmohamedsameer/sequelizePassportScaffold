@@ -24,7 +24,7 @@ module.exports = function(passport){
     },
     function(req, email, password, done) {
       console.log('finding user');
-      models.User.findOne({where:{email:email}})
+      models.User.findOne({where:{email:email}, include:[models.UserRole]})
         .then(function(user){
           if (!user){
             console.log('User does not exist');

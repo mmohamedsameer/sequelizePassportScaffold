@@ -2,6 +2,7 @@
 
 module.exports = function(sequelize, DataTypes){
   var UserRole = sequelize.define("UserRole", {
+    name:DataTypes.STRING
   },
   {
     classMethods: {

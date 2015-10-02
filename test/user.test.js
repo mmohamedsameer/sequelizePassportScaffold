@@ -192,6 +192,7 @@ describe('API', function(){
         .end(function(err, res){
           res.status.should.equal(200);
           res.body.UserRoles.length.should.equal(1);
+          res.body.UserRoles[0].name.should.equal(role.name);
           done();
         });
     });
